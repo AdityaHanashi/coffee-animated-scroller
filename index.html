@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Adi's Coffee Shop</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+:root{
+  --dark:#1A0A06;--brown:#3E2723;--mid:#6D4C41;
+  --cream:#F5E6D3;--light:#FBF4EC;
+  --gold:#C8973A;--gold-light:#E8C06A;--text-dark:#1A0E08;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:auto;}
+body{font-family:'DM Sans',sans-serif;background:var(--brown);color:var(--cream);overflow-x:hidden;cursor:none;}
+
+/* CURSOR */
+.cursor{position:fixed;width:10px;height:10px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(200,151,58,0.5);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:all 0.14s ease;}
+
+/* INTRO OVERLAY */
+#intro{position:fixed;inset:0;z-index:9000;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;}
+#introCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+
+.intro-mug-wrap{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;}
+.intro-mug-svg{width:150px;height:180px;filter:drop-shadow(0 20px 50px rgba(200,151,58,0.3));}
+.intro-name{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;letter-spacing:0.15em;color:var(--gold);margin-top:24px;text-shadow:0 0 40px rgba(200,151,58,0.45);}
+.intro-tag{font-family:'Cormorant Garamond',serif;font-size:0.9rem;font-style:italic;color:rgba(245,230,211,0.45);letter-spacing:0.18em;margin-top:8px;}
+.intro-steam{position:absolute;top:-32px;left:50%;transform:translateX(-50%);display:flex;gap:10px;}
+.intro-steam-line{width:2px;border-radius:2px;background:linear-gradient(to top,rgba(245,230,211,0.3),transparent);animation:steamUp 2.2s ease-in-out infinite;}
+.intro-steam-line:nth-child(1){height:30px;animation-delay:0s}
+.intro-steam-line:nth-child(2){height:44px;animation-delay:0.35s}
+.intro-steam-line:nth-child(3){height:26px;animation-delay:0.7s}
+@keyframes steamUp{0%{opacity:0;transform:scaleY(0) translateY(0)}30%{opacity:1}100%{opacity:0;transform:scaleY(1.3) translateY(-14px)}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:6000;height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(20,8,4,0.8);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(200,151,58,0.15);box-shadow:0 4px 28px rgba(0,0,0,0.3);}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;letter-spacing:0.1em;color:var(--gold);text-decoration:none;line-height:1.3;}
+.nav-logo span{display:block;font-size:0.52rem;font-weight:300;letter-spacing:0.38em;color:rgba(200,151,58,0.55);margin-top:1px;}
+.nav-links{display:flex;gap:36px;list-style:none;}
+.nav-links a{font-size:0.72rem;font-weight:400;letter-spacing:0.22em;text-transform:uppercase;color:#F5E6D3;text-decoration:none;opacity:0.82;transition:all 0.3s;position:relative;padding-bottom:3px;}
+.nav-links a::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:center;transition:transform 0.3s ease;}
+.nav-links a:hover{opacity:1;color:var(--gold-light);}
+.nav-links a:hover::after{transform:scaleX(1);}
+.nav-cta{font-size:0.72rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--dark);background:var(--gold);padding:9px 22px;text-decoration:none;transition:all 0.3s;border-radius:2px;box-shadow:0 0 18px rgba(200,151,58,0.28);}
+.nav-cta:hover{background:var(--gold-light);box-shadow:0 0 34px rgba(200,151,58,0.55);transform:scale(1.04);}
+
+/* HERO */
+#hero{position:relative;width:100%;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.hero-bg-left{position:absolute;inset:0 50% 0 0;background:var(--brown);}
+.hero-bg-right{position:absolute;inset:0 0 0 50%;background:var(--cream);}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:128px;}
+.hero-divider{position:absolute;left:50%;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(200,151,58,0.4),transparent);z-index:5;}
+.hero-title-left{position:absolute;left:50%;top:50%;transform:translate(-100%,-50%);padding-right:80px;text-align:right;z-index:10;}
+.hero-title-right{position:absolute;left:50%;top:50%;transform:translate(0,-50%);padding-left:80px;z-index:10;}
+.title-word{font-family:'Playfair Display',serif;font-size:clamp(3.5rem,8vw,8rem);font-weight:900;line-height:0.9;letter-spacing:-0.02em;display:block;overflow:hidden;}
+.title-word span{display:block;}
+.title-word.dark-side{color:var(--cream);}
+.title-word.light-side{color:var(--text-dark);}
+.hero-sub-left{font-family:'Cormorant Garamond',serif;font-size:0.9rem;font-style:italic;letter-spacing:0.1em;color:rgba(245,230,211,0.5);margin-top:16px;display:block;}
+.hero-sub-right{font-family:'Cormorant Garamond',serif;font-size:0.9rem;font-style:italic;letter-spacing:0.1em;color:rgba(42,24,16,0.4);margin-top:16px;display:block;}
+#mug-scene{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;width:320px;height:400px;display:flex;align-items:center;justify-content:center;}
+.mug-svg{width:220px;height:260px;filter:drop-shadow(0 30px 60px rgba(0,0,0,0.5));}
+.steam{position:absolute;left:50%;top:-30px;display:flex;gap:14px;transform:translateX(-50%);pointer-events:none;}
+.steam-line{width:2px;background:linear-gradient(to top,rgba(245,230,211,0.4),transparent);border-radius:2px;animation:steamRise 2.5s ease-in-out infinite;}
+.steam-line:nth-child(1){height:40px;animation-delay:0s}
+.steam-line:nth-child(2){height:55px;animation-delay:0.4s}
+.steam-line:nth-child(3){height:35px;animation-delay:0.8s}
+@keyframes steamRise{0%{opacity:0;transform:scaleY(0) translateY(0)}30%{opacity:1}100%{opacity:0;transform:scaleY(1.2) translateY(-20px)}}
+.scroll-hint{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.scroll-hint span{font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(200,151,58,0.6);}
+.scroll-line{width:1px;height:48px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollPulse 2s ease-in-out infinite;}
+@keyframes scrollPulse{0%,100%{opacity:0.4;transform:scaleY(0.8)}50%{opacity:1;transform:scaleY(1)}}
+
+/* ══════════════════════════════════════
+   BEAN SPLIT SECTION
+══════════════════════════════════════ */
+#bean-split{
+  position:relative;
+  height:300vh; /* tall for pinning */
+  background:var(--dark);
+}
+.bean-split-sticky{
+  position:sticky;top:0;
+  height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+
+/* The two halves container */
+.bean-halves{
+  position:relative;
+  width:420px;height:420px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Each half */
+.bean-half-left,
+.bean-half-right{
+  position:absolute;
+  top:0;
+  width:210px;height:420px;
+  overflow:hidden;
+  will-change:transform;
+}
+.bean-half-left{ left:0; transform-origin:right center; }
+.bean-half-right{ right:0; transform-origin:left center; }
+
+/* The full bean SVG inside each half — positioned so it lines up */
+.bean-half-left .bean-full-svg{
+  position:absolute;left:0;top:0;
+  width:420px;height:420px;
+}
+.bean-half-right .bean-full-svg{
+  position:absolute;right:0;top:0;
+  width:420px;height:420px;
+}
+
+/* Content revealed between the halves as they split */
+.bean-reveal-content{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  z-index:2;
+  opacity:0;
+  width:340px;
+  pointer-events:none;
+}
+.bean-reveal-label{font-size:0.62rem;letter-spacing:0.38em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:block;}
+.bean-reveal-title{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:900;color:var(--cream);line-height:1.05;margin-bottom:16px;}
+.bean-reveal-title em{font-style:italic;color:var(--gold);}
+.bean-reveal-body{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;line-height:1.75;color:rgba(245,230,211,0.65);}
+
+/* Crack glow line in center */
+.bean-crack{
+  position:absolute;
+  left:50%;top:10%;bottom:10%;
+  width:2px;
+  transform:translateX(-50%);
+  background:linear-gradient(to bottom,transparent,rgba(200,151,58,0.6),var(--gold),rgba(200,151,58,0.6),transparent);
+  opacity:0;
+  box-shadow:0 0 12px rgba(200,151,58,0.8),0 0 28px rgba(200,151,58,0.3);
+  z-index:3;
+}
+
+/* Floating beans decoration */
+.float-bean{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+/* ORIGIN */
+#origin{min-height:100vh;background:var(--brown);display:flex;align-items:center;padding:120px 80px;overflow:hidden;}
+.origin-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center;}
+.origin-label{font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;display:block;}
+.origin-title{font-family:'Playfair Display',serif;font-size:clamp(3rem,5vw,5.5rem);font-weight:700;line-height:1.05;color:var(--cream);margin-bottom:32px;}
+.origin-title em{font-style:italic;color:var(--gold);}
+.origin-body{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:300;line-height:1.8;color:rgba(245,230,211,0.65);max-width:420px;}
+.origin-stats{display:flex;gap:48px;margin-top:56px;}
+.stat-num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;color:var(--gold);display:block;line-height:1;}
+.stat-label{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,230,211,0.4);margin-top:6px;display:block;}
+.beans-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.bean-card{background:rgba(245,230,211,0.04);border:1px solid rgba(245,230,211,0.08);border-radius:4px;padding:28px;transition:all 0.4s ease;}
+.bean-card:hover{background:rgba(200,151,58,0.08);border-color:rgba(200,151,58,0.25);transform:translateY(-4px);}
+.bean-card-icon{font-size:2rem;margin-bottom:12px;display:block;}
+.bean-card-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--cream);margin-bottom:8px;}
+.bean-card-desc{font-size:0.8rem;line-height:1.6;color:rgba(245,230,211,0.4);}
+.gold-line{width:40px;height:1px;background:var(--gold);opacity:0.5;margin:24px 0;}
+
+/* PRODUCTS */
+#products{min-height:100vh;background:var(--cream);padding:120px 80px;overflow:hidden;}
+.products-header{text-align:center;margin-bottom:80px;}
+.products-label{font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--mid);margin-bottom:16px;display:block;}
+.products-title{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,4vw,4.5rem);font-weight:900;color:var(--dark);line-height:1.1;}
+.products-title em{font-style:italic;color:var(--mid);}
+.gold-line-center{margin:24px auto;}
+.products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1200px;margin:0 auto;}
+.product-card{background:var(--light);border:1px solid rgba(42,24,16,0.08);border-radius:6px;padding:48px 36px;text-align:center;cursor:pointer;transition:all 0.5s cubic-bezier(0.23,1,0.32,1);position:relative;overflow:hidden;}
+.product-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,151,58,0.05),transparent);opacity:0;transition:opacity 0.4s;}
+.product-card:hover{transform:translateY(-12px) scale(1.02);box-shadow:0 40px 80px rgba(42,24,16,0.15);border-color:rgba(200,151,58,0.3);}
+.product-card:hover::before{opacity:1;}
+.product-badge{display:inline-block;font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(200,151,58,0.4);padding:4px 12px;border-radius:2px;margin-bottom:32px;}
+.product-icon-wrap{width:120px;height:120px;margin:0 auto 32px;display:flex;align-items:center;justify-content:center;background:var(--brown);border-radius:50%;font-size:3.2rem;box-shadow:0 20px 40px rgba(42,24,16,0.2);transition:transform 0.5s cubic-bezier(0.23,1,0.32,1);}
+.product-card:hover .product-icon-wrap{transform:rotate(8deg) scale(1.1);}
+.product-name{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--dark);margin-bottom:12px;}
+.product-origin{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.95rem;color:rgba(42,24,16,0.45);margin-bottom:20px;}
+.product-desc{font-size:0.82rem;line-height:1.7;color:rgba(42,24,16,0.55);margin-bottom:32px;}
+.product-price{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--brown);}
+.product-price sup{font-size:0.9rem;vertical-align:super;}
+
+/* ABOUT */
+#about{min-height:80vh;background:var(--dark);padding:120px 80px;position:relative;overflow:hidden;}
+.about-inner{max-width:900px;margin:0 auto;text-align:center;position:relative;z-index:2;}
+.about-quote-mark{font-family:'Playfair Display',serif;font-size:12rem;line-height:0.5;color:rgba(200,151,58,0.1);display:block;margin-bottom:16px;}
+.about-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,3.5vw,3.5rem);font-weight:300;font-style:italic;line-height:1.4;color:var(--cream);margin-bottom:40px;}
+.about-attribution{font-size:0.7rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);opacity:0.7;}
+.about-bg-circle{position:absolute;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;border:1px solid rgba(200,151,58,0.06);}
+
+/* CTA */
+#cta{min-height:70vh;background:linear-gradient(135deg,var(--brown) 0%,#4E342E 50%,var(--brown) 100%);display:flex;align-items:center;justify-content:center;padding:80px;text-align:center;position:relative;overflow:hidden;}
+.cta-inner{position:relative;z-index:2;}
+.cta-label{font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;display:block;}
+.cta-title{font-family:'Playfair Display',serif;font-size:clamp(3rem,6vw,7rem);font-weight:900;line-height:0.95;color:var(--cream);margin-bottom:32px;}
+.cta-title em{font-style:italic;color:var(--gold);}
+.cta-sub{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-style:italic;color:rgba(245,230,211,0.5);margin-bottom:56px;}
+.btn-glow{display:inline-flex;align-items:center;gap:12px;font-size:0.8rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--dark);background:var(--gold);padding:18px 48px;border:none;border-radius:2px;cursor:pointer;text-decoration:none;position:relative;overflow:hidden;transition:all 0.4s cubic-bezier(0.23,1,0.32,1);box-shadow:0 0 30px rgba(200,151,58,0.3);}
+.btn-glow::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);transform:translateX(-100%);transition:transform 0.6s ease;}
+.btn-glow:hover{transform:scale(1.05) translateY(-2px);box-shadow:0 0 60px rgba(200,151,58,0.6),0 20px 40px rgba(0,0,0,0.3);}
+.btn-glow:hover::before{transform:translateX(100%);}
+.btn-outline{display:inline-flex;align-items:center;gap:12px;font-size:0.8rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);background:transparent;padding:18px 48px;border:1px solid rgba(200,151,58,0.4);border-radius:2px;cursor:pointer;text-decoration:none;margin-left:16px;transition:all 0.4s cubic-bezier(0.23,1,0.32,1);}
+.btn-outline:hover{border-color:var(--gold);background:rgba(200,151,58,0.08);transform:scale(1.03);}
+.cta-glow-orb{position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(200,151,58,0.12) 0%,transparent 70%);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;animation:orbPulse 4s ease-in-out infinite;}
+@keyframes orbPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.8}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1}}
+
+/* FOOTER */
+footer{background:var(--dark);padding:48px 80px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(245,230,211,0.06);}
+.footer-logo{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;letter-spacing:0.12em;color:var(--gold);line-height:1.4;}
+.footer-logo span{display:block;font-size:0.52rem;font-weight:300;letter-spacing:0.4em;opacity:0.55;}
+.footer-copy{font-size:0.72rem;letter-spacing:0.1em;color:rgba(245,230,211,0.25);}
+.footer-links{display:flex;gap:32px;list-style:none;}
+.footer-links a{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,230,211,0.35);text-decoration:none;transition:color 0.3s;}
+.footer-links a:hover{color:var(--gold);}
+.fade-up{opacity:0;transform:translateY(40px);}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- INTRO OVERLAY -->
+<div id="intro">
+  <canvas id="introCanvas"></canvas>
+  <div class="intro-mug-wrap" id="introMugWrap">
+    <div style="position:relative;">
+      <div class="intro-steam">
+        <div class="intro-steam-line"></div>
+        <div class="intro-steam-line"></div>
+        <div class="intro-steam-line"></div>
+      </div>
+      <svg class="intro-mug-svg" id="introMugSvg" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="iB" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#5D4037"/><stop offset="40%" stop-color="#3E2723"/><stop offset="100%" stop-color="#1A0E08"/></linearGradient>
+          <linearGradient id="iC" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3E2723"/><stop offset="100%" stop-color="#1A0E08"/></linearGradient>
+          <linearGradient id="iR" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#8D6E63"/><stop offset="50%" stop-color="#C8973A"/><stop offset="100%" stop-color="#6D4C41"/></linearGradient>
+          <linearGradient id="iS" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(255,255,255,0.18)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient>
+          <filter id="iSh"><feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="rgba(0,0,0,0.6)"/></filter>
+          <filter id="iGl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <clipPath id="iCl"><path d="M30 70 Q28 220 100 225 Q172 220 170 70 Z"/></clipPath>
+        </defs>
+        <ellipse cx="100" cy="222" rx="65" ry="8" fill="rgba(0,0,0,0.4)" filter="url(#iSh)"/>
+        <path d="M30 70 Q28 220 100 225 Q172 220 170 70 Z" fill="url(#iB)" filter="url(#iSh)"/>
+        <path d="M40 110 Q38 215 100 220 Q162 215 160 110 Z" fill="url(#iC)" clip-path="url(#iCl)"/>
+        <ellipse cx="100" cy="111" rx="59" ry="9" fill="#2A1810"/>
+        <ellipse cx="100" cy="111" rx="26" ry="4" fill="#8D6E63" opacity="0.55"/>
+        <path d="M88 109 Q100 106 112 109" stroke="#C8973A" stroke-width="1" fill="none" opacity="0.5"/>
+        <ellipse cx="100" cy="70" rx="70" ry="12" fill="url(#iR)"/>
+        <ellipse cx="100" cy="69" rx="66" ry="10" fill="#4E342E"/>
+        <ellipse cx="100" cy="68" rx="62" ry="8" fill="#3E2723"/>
+        <path d="M170 90 Q210 90 210 140 Q210 190 170 185" stroke="#4E342E" stroke-width="16" fill="none" stroke-linecap="round"/>
+        <path d="M170 90 Q202 90 202 140 Q202 185 170 185" stroke="#5D4037" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.5"/>
+        <path d="M45 90 Q42 160 55 200 Q48 155 46 90 Z" fill="url(#iS)" opacity="0.55"/>
+        <text x="100" y="168" text-anchor="middle" font-family="Playfair Display,serif" font-size="10" font-weight="900" letter-spacing="2" fill="rgba(200,151,58,0.6)" filter="url(#iGl)">Adi's</text>
+        <path d="M32 88 Q100 98 168 88" stroke="#C8973A" stroke-width="1.5" fill="none" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="intro-name" id="introName">Adi's Coffee Shop</div>
+    <div class="intro-tag" id="introTag">Premium · Artisan · Roasted with Love</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Adi's Coffee Shop<span>Est. 2024 · Premium Roasts</span></a>
+  <ul class="nav-links">
+    <li><a href="#origin">Origin</a></li>
+    <li><a href="#products">Collection</a></li>
+    <li><a href="#about">Story</a></li>
+  </ul>
+  <a href="#cta" class="nav-cta">Order Now</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-left"></div>
+  <div class="hero-bg-right"></div>
+  <div class="hero-divider"></div>
+  <div class="hero-title-left" id="titleLeft">
+    <span class="title-word dark-side"><span id="word1">Fresh</span></span>
+    <div class="hero-sub-left">Adi's · Est. 2024</div>
+  </div>
+  <div class="hero-title-right" id="titleRight">
+    <span class="title-word light-side"><span id="word2">Coffee</span></span>
+    <div class="hero-sub-right">Sourced. Roasted. Loved.</div>
+  </div>
+  <div id="mug-scene">
+    <div class="steam" id="steam">
+      <div class="steam-line"></div><div class="steam-line"></div><div class="steam-line"></div>
+    </div>
+    <svg class="mug-svg" id="mugSvg" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="mgB" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#5D4037"/><stop offset="40%" stop-color="#3E2723"/><stop offset="100%" stop-color="#1A0E08"/></linearGradient>
+        <linearGradient id="mgC" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3E2723"/><stop offset="100%" stop-color="#1A0E08"/></linearGradient>
+        <linearGradient id="mgR" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#8D6E63"/><stop offset="50%" stop-color="#C8973A"/><stop offset="100%" stop-color="#6D4C41"/></linearGradient>
+        <linearGradient id="mgS" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(255,255,255,0.15)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient>
+        <filter id="mSh"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="rgba(0,0,0,0.5)"/></filter>
+        <filter id="mGl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <clipPath id="mCl"><path d="M30 70 Q28 220 100 225 Q172 220 170 70 Z"/></clipPath>
+      </defs>
+      <ellipse cx="100" cy="222" rx="65" ry="8" fill="rgba(0,0,0,0.35)" filter="url(#mSh)"/>
+      <path d="M30 70 Q28 220 100 225 Q172 220 170 70 Z" fill="url(#mgB)" filter="url(#mSh)"/>
+      <path d="M40 110 Q38 215 100 220 Q162 215 160 110 Z" fill="url(#mgC)" clip-path="url(#mCl)"/>
+      <ellipse cx="100" cy="111" rx="59" ry="9" fill="#2A1810"/>
+      <ellipse cx="100" cy="111" rx="28" ry="4.5" fill="#8D6E63" opacity="0.5"/>
+      <path d="M88 109 Q100 106 112 109" stroke="#C8973A" stroke-width="1" fill="none" opacity="0.5"/>
+      <ellipse cx="100" cy="70" rx="70" ry="12" fill="url(#mgR)"/>
+      <ellipse cx="100" cy="69" rx="66" ry="10" fill="#4E342E"/>
+      <ellipse cx="100" cy="68" rx="62" ry="8" fill="#3E2723"/>
+      <path d="M170 90 Q210 90 210 140 Q210 190 170 185" stroke="#4E342E" stroke-width="16" fill="none" stroke-linecap="round"/>
+      <path d="M170 90 Q202 90 202 140 Q202 185 170 185" stroke="#5D4037" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.5"/>
+      <path d="M45 90 Q42 160 55 200 Q48 155 46 90 Z" fill="url(#mgS)" opacity="0.6"/>
+      <text x="100" y="168" text-anchor="middle" font-family="Playfair Display,serif" font-size="9" font-weight="900" letter-spacing="1.5" fill="rgba(200,151,58,0.55)" filter="url(#mGl)">Adi's</text>
+      <path d="M32 88 Q100 98 168 88" stroke="#C8973A" stroke-width="1.5" fill="none" opacity="0.4"/>
+    </svg>
+  </div>
+  <div class="scroll-hint" id="scrollHint"><span>Scroll</span><div class="scroll-line"></div></div>
+</section>
+
+<!-- ORIGIN -->
+<section id="origin">
+  <div class="origin-inner">
+    <div class="origin-text fade-up">
+      <span class="origin-label">Our Philosophy</span>
+      <h2 class="origin-title">Where<br/>Bean Meets <em>Soul</em></h2>
+      <div class="gold-line"></div>
+      <p class="origin-body">Every cup Adi crafts begins thousands of metres above sea level, where volcanic soil and mountain air create something extraordinary. We source only the top 1% of each harvest — nothing less.</p>
+      <div class="origin-stats">
+        <div><span class="stat-num">37</span><span class="stat-label">Years roasting</span></div>
+        <div><span class="stat-num">12</span><span class="stat-label">Origins</span></div>
+        <div><span class="stat-num">1%</span><span class="stat-label">Of each harvest</span></div>
+      </div>
+    </div>
+    <div class="origin-visual fade-up" style="transition-delay:0.15s">
+      <div class="beans-grid">
+        <div class="bean-card"><span class="bean-card-icon">🌋</span><div class="bean-card-title">Volcanic Soil</div><p class="bean-card-desc">Grown at altitude on mineral-rich slopes for unparalleled depth.</p></div>
+        <div class="bean-card" style="margin-top:32px;"><span class="bean-card-icon">☀️</span><div class="bean-card-title">Sun-Dried</div><p class="bean-card-desc">72-hour natural drying intensifies fruit notes and sweetness.</p></div>
+        <div class="bean-card"><span class="bean-card-icon">🔥</span><div class="bean-card-title">Slow Roast</div><p class="bean-card-desc">18-minute medium-dark roast preserves origin character.</p></div>
+        <div class="bean-card" style="margin-top:32px;"><span class="bean-card-icon">🧪</span><div class="bean-card-title">Cupped Daily</div><p class="bean-card-desc">Every batch scored by Q-certified graders before release.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BEAN SPLIT SECTION ══ -->
+<section id="bean-split">
+  <div class="bean-split-sticky">
+
+    <!-- floating micro beans in background -->
+    <svg class="float-bean" id="fb1" style="width:60px;left:8%;top:20%;" viewBox="0 0 100 160"><ellipse cx="50" cy="80" rx="40" ry="72" fill="#3E2723"/><path d="M50 15 Q42 80 50 145" stroke="#1A0E08" stroke-width="4" fill="none"/></svg>
+    <svg class="float-bean" id="fb2" style="width:44px;right:12%;top:30%;" viewBox="0 0 100 160"><ellipse cx="50" cy="80" rx="40" ry="72" fill="#4E342E"/><path d="M50 15 Q42 80 50 145" stroke="#2A1810" stroke-width="4" fill="none"/></svg>
+    <svg class="float-bean" id="fb3" style="width:36px;left:20%;bottom:25%;" viewBox="0 0 100 160"><ellipse cx="50" cy="80" rx="40" ry="72" fill="#3E2723"/><path d="M50 15 Q42 80 50 145" stroke="#1A0E08" stroke-width="4" fill="none"/></svg>
+    <svg class="float-bean" id="fb4" style="width:52px;right:22%;bottom:20%;" viewBox="0 0 100 160"><ellipse cx="50" cy="80" rx="40" ry="72" fill="#5D4037"/><path d="M50 15 Q42 80 50 145" stroke="#2A1810" stroke-width="4" fill="none"/></svg>
+
+    <!-- crack glow -->
+    <div class="bean-crack" id="beanCrack"></div>
+
+    <!-- the split bean halves -->
+    <div class="bean-halves">
+
+      <!-- LEFT HALF -->
+      <div class="bean-half-left" id="beanHalfLeft">
+        <svg viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" style="width:420px;height:420px;position:absolute;left:0;top:0;">
+          <defs>
+            <linearGradient id="bLG" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6D4C41"/><stop offset="40%" stop-color="#3E2723"/><stop offset="100%" stop-color="#1A0E08"/>
+            </linearGradient>
+            <linearGradient id="bLS" x1="0%" y1="0%" x2="60%" y2="60%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </linearGradient>
+            <radialGradient id="bLR" cx="35%" cy="30%">
+              <stop offset="0%" stop-color="#8D6E63" stop-opacity="0.25"/><stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+            <filter id="bSh"><feDropShadow dx="-6" dy="3" stdDeviation="14" flood-color="rgba(0,0,0,0.7)"/></filter>
+            <!-- clip to left half only -->
+            <clipPath id="leftClip"><rect x="0" y="0" width="210" height="420"/></clipPath>
+          </defs>
+          <g clip-path="url(#leftClip)">
+            <!-- bean body -->
+            <ellipse cx="210" cy="210" rx="175" ry="190" fill="url(#bLG)" filter="url(#bSh)"/>
+            <!-- inner depth ring -->
+            <ellipse cx="210" cy="210" rx="140" ry="155" fill="none" stroke="#2A1810" stroke-width="2" opacity="0.35"/>
+            <!-- surface texture radial -->
+            <ellipse cx="210" cy="210" rx="175" ry="190" fill="url(#bLR)"/>
+            <!-- center crease — the iconic bean line -->
+            <path d="M210 30 Q188 120 190 210 Q188 300 210 390" stroke="#1A0E08" stroke-width="7" fill="none"/>
+            <path d="M210 30 Q195 120 197 210 Q195 300 210 390" stroke="#4E342E" stroke-width="3" fill="none" opacity="0.5"/>
+            <!-- shine highlight -->
+            <ellipse cx="155" cy="130" rx="38" ry="75" fill="url(#bLS)" transform="rotate(-20,155,130)" opacity="0.7"/>
+            <!-- surface scratches for realism -->
+            <path d="M100 100 Q130 160 120 220" stroke="#4E342E" stroke-width="1.2" fill="none" opacity="0.3"/>
+            <path d="M80 150 Q110 200 100 260" stroke="#4E342E" stroke-width="0.8" fill="none" opacity="0.2"/>
+            <path d="M140 80 Q155 150 148 200" stroke="#5D4037" stroke-width="0.8" fill="none" opacity="0.25"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- RIGHT HALF -->
+      <div class="bean-half-right" id="beanHalfRight">
+        <svg viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" style="width:420px;height:420px;position:absolute;right:0;top:0;">
+          <defs>
+            <linearGradient id="bRG" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#5D4037"/><stop offset="40%" stop-color="#3E2723"/><stop offset="100%" stop-color="#1A0E08"/>
+            </linearGradient>
+            <linearGradient id="bRS" x1="100%" y1="0%" x2="40%" y2="60%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.08)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </linearGradient>
+            <filter id="bShR"><feDropShadow dx="6" dy="3" stdDeviation="14" flood-color="rgba(0,0,0,0.7)"/></filter>
+            <clipPath id="rightClip"><rect x="210" y="0" width="210" height="420"/></clipPath>
+          </defs>
+          <g clip-path="url(#rightClip)">
+            <ellipse cx="210" cy="210" rx="175" ry="190" fill="url(#bRG)" filter="url(#bShR)"/>
+            <ellipse cx="210" cy="210" rx="140" ry="155" fill="none" stroke="#2A1810" stroke-width="2" opacity="0.3"/>
+            <!-- crease right side -->
+            <path d="M210 30 Q232 120 230 210 Q232 300 210 390" stroke="#1A0E08" stroke-width="7" fill="none"/>
+            <path d="M210 30 Q225 120 223 210 Q225 300 210 390" stroke="#4E342E" stroke-width="3" fill="none" opacity="0.5"/>
+            <!-- highlight -->
+            <ellipse cx="265" cy="130" rx="30" ry="60" fill="url(#bRS)" transform="rotate(20,265,130)" opacity="0.6"/>
+            <!-- scratches -->
+            <path d="M320 100 Q290 160 300 220" stroke="#4E342E" stroke-width="1.2" fill="none" opacity="0.3"/>
+            <path d="M340 150 Q310 200 320 260" stroke="#4E342E" stroke-width="0.8" fill="none" opacity="0.2"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Content revealed inside the split -->
+      <div class="bean-reveal-content" id="beanReveal">
+        <span class="bean-reveal-label">The Secret Inside</span>
+        <h3 class="bean-reveal-title">Single<br/><em>Origin</em></h3>
+        <p class="bean-reveal-body">Each bean carries the altitude, soil and story of its origin. Crack one open — and you'll find decades of expertise.</p>
+      </div>
+
+    </div><!-- .bean-halves -->
+  </div><!-- .bean-split-sticky -->
+</section>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="products-header fade-up">
+    <span class="products-label">Adi's Collection</span>
+    <h2 class="products-title">Crafted for<br/><em>Connoisseurs</em></h2>
+    <div class="gold-line gold-line-center" style="background:var(--mid);"></div>
+  </div>
+  <div class="products-grid">
+    <div class="product-card fade-up"><span class="product-badge">Signature</span><div class="product-icon-wrap">☕</div><h3 class="product-name">Adi's Espresso</h3><p class="product-origin">Ethiopia Yirgacheffe</p><p class="product-desc">Dark chocolate and bergamot with a syrupy body. The flagship that started it all.</p><span class="product-price"><sup>$</sup>28</span></div>
+    <div class="product-card fade-up" style="margin-top:32px;"><span class="product-badge">Limited</span><div class="product-icon-wrap">🫘</div><h3 class="product-name">Altitude Reserve</h3><p class="product-origin">Colombia Huila</p><p class="product-desc">Jasmine florals, red cherry, and brown sugar from 2,000m above sea level.</p><span class="product-price"><sup>$</sup>46</span></div>
+    <div class="product-card fade-up"><span class="product-badge">Seasonal</span><div class="product-icon-wrap">🌿</div><h3 class="product-name">Velvet Pour</h3><p class="product-origin">Guatemala Antigua</p><p class="product-desc">Silky mouthfeel, bittersweet caramel, and a clean, lingering finish.</p><span class="product-price"><sup>$</sup>34</span></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-bg-circle" style="width:600px;height:600px;"></div>
+  <div class="about-bg-circle" style="width:800px;height:800px;"></div>
+  <div class="about-inner fade-up">
+    <span class="about-quote-mark">"</span>
+    <blockquote class="about-quote">Coffee is not merely a drink — it is a ritual of stillness in a world that never stops moving.</blockquote>
+    <div class="gold-line" style="margin:24px auto;"></div>
+    <p class="about-attribution">— Adi, Founder</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-glow-orb"></div>
+  <div class="cta-inner fade-up">
+    <span class="cta-label">Begin Your Journey</span>
+    <h2 class="cta-title">Taste the<br/><em>Difference</em></h2>
+    <p class="cta-sub">Free shipping on your first order. No compromise, ever.</p>
+    <div><a href="#" class="btn-glow">Shop the Collection</a><a href="#" class="btn-outline">Our Story →</a></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Adi's Coffee Shop<span>Premium · Artisan · Loved</span></div>
+  <ul class="footer-links"><li><a href="#">Instagram</a></li><li><a href="#">Privacy</a></li><li><a href="#">Contact</a></li></ul>
+  <p class="footer-copy">© 2026 Adi's Coffee Shop. All rights reserved.</p>
+</footer>
+
+<script>
+/* ── CURSOR ── */
+const cursor=document.getElementById('cursor'),cring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function ac(){cursor.style.left=mx+'px';cursor.style.top=my+'px';rx+=(mx-rx)*.12;ry+=(my-ry)*.12;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(ac);})();
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cring.style.width='52px';cring.style.height='52px';cring.style.borderColor='rgba(200,151,58,0.7)';});
+  el.addEventListener('mouseleave',()=>{cring.style.width='32px';cring.style.height='32px';cring.style.borderColor='rgba(200,151,58,0.5)';});
+});
+
+/* ════════════════════════════════════════════════
+   CANVAS — shared for splash + falling seeds
+════════════════════════════════════════════════ */
+const CV=document.getElementById('introCanvas'),CX=CV.getContext('2d');
+function rsz(){CV.width=innerWidth;CV.height=innerHeight;}rsz();
+window.addEventListener('resize',rsz);
+const rand=(a,b)=>a+Math.random()*(b-a);
+
+/* ════════════════════════════════════════════════
+   FALLING COFFEE SEEDS — hero section only
+   • Canvas sits absolute inside #hero
+   • ALL seeds fall from top, scatter & bounce at bottom
+   • Stay settled, scroll away with hero, come back on up
+   • Refresh = fresh fall
+════════════════════════════════════════════════ */
+const heroEl=document.getElementById('hero');
+const SC=document.createElement('canvas');
+SC.id='seedCanvas';
+Object.assign(SC.style,{
+  position:'absolute',inset:'0',width:'100%',height:'100%',
+  pointerEvents:'none',zIndex:'8',display:'block'
+});
+heroEl.appendChild(SC);
+const SX=SC.getContext('2d');
+
+function rszS(){SC.width=heroEl.offsetWidth;SC.height=heroEl.offsetHeight;}
+rszS();
+window.addEventListener('resize',rszS);
+
+/* Draw a realistic coffee bean */
+function drawSeed(ctx,x,y,w,h,rot,col,alpha){
+  if(alpha<=0)return;
+  ctx.save();
+  ctx.globalAlpha=Math.min(1,alpha);
+  ctx.translate(x,y);
+  ctx.rotate(rot);
+  ctx.shadowColor='rgba(0,0,0,0.4)';
+  ctx.shadowBlur=7;
+  ctx.shadowOffsetY=4;
+  ctx.beginPath();
+  ctx.ellipse(0,0,w/2,h/2,0,0,Math.PI*2);
+  const g=ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);
+  g.addColorStop(0,'#7C5548');
+  g.addColorStop(0.35,col);
+  g.addColorStop(1,'#1A0E08');
+  ctx.fillStyle=g;
+  ctx.fill();
+  ctx.shadowColor='transparent';
+  // crease
+  ctx.beginPath();
+  ctx.moveTo(0,-h/2*0.82);
+  ctx.bezierCurveTo(-w*0.13,-h*0.08,-w*0.11,h*0.08,0,h/2*0.82);
+  ctx.strokeStyle='rgba(12,4,2,0.8)';
+  ctx.lineWidth=Math.max(0.8,w*0.11);
+  ctx.lineCap='round';
+  ctx.stroke();
+  // shine
+  ctx.beginPath();
+  ctx.ellipse(-w*0.14,-h*0.16,w*0.11,h*0.17,-0.35,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.13)';
+  ctx.fill();
+  ctx.restore();
+}
+
+const FLOOR=()=>SC.height-22;
+const HERO_W=()=>SC.width;
+
+const BROWNS=['#5D4037','#4E342E','#3E2723','#6D4C41','#795548','#4A2C1A'];
+
+class FallingSeed{
+  constructor(launchDelay, startX){
+    this.launchDelay = launchDelay;
+    this.launched    = false;
+    this.settled     = false;
+    this.startTime   = null;
+
+    this.w   = rand(16, 34);
+    this.h   = this.w * rand(1.5, 2.0);
+    this.col = BROWNS[Math.floor(Math.random()*BROWNS.length)];
+
+    // spawn across full width — evenly zoned so none cluster
+    this.x   = startX !== undefined ? startX : rand(this.w, HERO_W()-this.w);
+    this.y   = -this.h - rand(0, 80);   // just above top, staggered heights
+
+    // throw physics — tossed in like scattered handful
+    this.vx      = rand(-3.5, 3.5);
+    this.vy      = rand(1.5, 4.5);
+    this.rot     = rand(0, Math.PI*2);
+    this.rotSpd  = rand(-0.055, 0.055);
+    this.grav    = rand(0.10, 0.20);
+    this.bounce  = rand(0.22, 0.48);
+    this.friction= 0.76;
+    this.bounceCount = 0;
+    this.maxBounces  = Math.floor(rand(1, 4));
+    this.alpha   = 0;
+  }
+
+  update(now){
+    if(!this.startTime){ this.startTime=now; return; }
+    if(now - this.startTime < this.launchDelay) return;
+    if(!this.launched) this.launched = true;
+
+    this.alpha = Math.min(1, this.alpha + 0.07);
+    if(this.settled) return;
+
+    this.vy  += this.grav;
+    this.x   += this.vx;
+    this.y   += this.vy;
+    this.rot += this.rotSpd;
+
+    // wall bounce — keep inside hero width
+    if(this.x - this.w/2 < 0){
+      this.x  = this.w/2;
+      this.vx = Math.abs(this.vx)*0.45;
+    }
+    if(this.x + this.w/2 > HERO_W()){
+      this.x  = HERO_W()-this.w/2;
+      this.vx = -Math.abs(this.vx)*0.45;
+    }
+
+    // floor collision
+    const floor = FLOOR();
+    if(this.y + this.h/2 >= floor){
+      this.y = floor - this.h/2;
+      if(this.bounceCount < this.maxBounces && Math.abs(this.vy) > 1.2){
+        this.vy       = -Math.abs(this.vy) * this.bounce;
+        this.vx      *= this.friction;
+        this.rotSpd  *= 0.55;
+        this.bounceCount++;
+      } else {
+        this.vy      = 0;
+        this.vx     *= 0.80;
+        this.rotSpd *= 0.85;
+        if(Math.abs(this.vx)<0.04 && Math.abs(this.rotSpd)<0.002){
+          this.vx=0; this.rotSpd=0; this.settled=true;
+        }
+      }
+    }
+  }
+
+  draw(){
+    if(!this.launched || this.alpha<=0) return;
+    drawSeed(SX, this.x, this.y, this.w, this.h, this.rot, this.col, this.alpha);
+  }
+}
+
+/* ── Build seeds spread evenly across full width ── */
+const SEEDS = [];
+const TOTAL = 55;   // enough to fill the wide hero visually
+
+// Divide screen into zones so seeds spread wall-to-wall
+// Each zone gets 1-2 seeds, staggered timing
+for(let i=0; i<TOTAL; i++){
+  // zone-based x: divide into TOTAL columns, add jitter
+  const zoneW  = (innerWidth || 1440) / TOTAL;
+  const zoneX  = zoneW * i + rand(0, zoneW);
+  const clampX = Math.max(18, Math.min((innerWidth||1440)-18, zoneX));
+
+  // stagger timing: first seed ~100ms, last ~6s — dense wave feel
+  const delay  = 100 + i * rand(80, 160) + rand(0, 100);
+  SEEDS.push(new FallingSeed(delay, clampX));
+}
+
+let seedRaf     = null;
+let seedRunning = true;
+
+function seedLoop(now){
+  if(!seedRunning){ seedRaf=null; return; }
+  SX.clearRect(0, 0, SC.width, SC.height);
+  SEEDS.forEach(s=>{ s.update(now); s.draw(); });
+  seedRaf = requestAnimationFrame(seedLoop);
+}
+seedRaf = requestAnimationFrame(seedLoop);
+
+/* Pause when hero scrolled out of view, resume on return */
+window.addEventListener('scroll', ()=>{
+  const r       = heroEl.getBoundingClientRect();
+  const visible = r.bottom > 0 && r.top < window.innerHeight;
+  if(visible && !seedRaf){
+    seedRunning = true;
+    seedRaf     = requestAnimationFrame(seedLoop);
+  } else if(!visible && seedRaf){
+    seedRunning = false;
+    cancelAnimationFrame(seedRaf);
+    seedRaf = null;
+    // paint settled state one last time so they show on scroll-up
+    SX.clearRect(0, 0, SC.width, SC.height);
+    SEEDS.forEach(s => s.draw());
+  }
+},{ passive:true });
+
+
+/* ════════════════════════════════════════════════
+   SIMPLE CLEAN COFFEE SPLASH
+   Mug pours → wave of coffee spreads from pour
+   point, runs down naturally. No explosions.
+   Three layers: dark liquid wave, mid spread,
+   crema foam + drips sliding down.
+════════════════════════════════════════════════ */
+
+/* A liquid wave panel that fills from top-down */
+class LiquidWave{
+  constructor(delay,color,targetH,speed,alpha){
+    this.delay=delay;this.born=performance.now();
+    this.color=color;
+    this.y=0;this.targetH=targetH;
+    this.speed=speed;
+    this.alpha=alpha;
+    this.waveOff=rand(0,Math.PI*2);
+    this.active=false;this.done=false;
+    this.draining=false;this.drainY=0;
+  }
+  update(now){
+    if(now-this.born<this.delay)return;
+    this.active=true;
+    if(!this.draining){
+      this.y=Math.min(this.targetH,this.y+this.speed);
+    } else {
+      this.drainY+=3.5;
+      if(this.drainY>CV.height+50)this.done=true;
+    }
+    this.waveOff+=0.04;
+  }
+  draw(now){
+    if(!this.active||this.done)return;
+    const t=now*0.001;
+    CX.save();
+    CX.globalAlpha=this.alpha;
+    CX.fillStyle=this.color;
+    CX.beginPath();
+    CX.moveTo(0,this.drainY);
+    // wavy top edge
+    for(let x=0;x<=CV.width+20;x+=8){
+      const waveY=this.drainY+this.y+Math.sin(x*0.018+t+this.waveOff)*9+Math.sin(x*0.031+t*1.3)*5;
+      x===0?CX.lineTo(x,waveY):CX.lineTo(x,waveY);
+    }
+    CX.lineTo(CV.width,this.drainY);
+    CX.closePath();
+    CX.fill();
+    CX.restore();
+  }
+}
+
+/* Drip: a single drop running straight down the screen */
+class Drip{
+  constructor(x,startY,color,delay){
+    this.x=x;this.y=startY;
+    this.vy=rand(1.2,4.0);
+    this.grav=rand(0.04,0.10);
+    this.w=rand(4,14);       // width of drip
+    this.color=color;
+    this.segs=[{x,y:startY}];
+    this.alpha=rand(0.7,0.95);
+    this.active=true;
+    this.delay=delay;this.born=performance.now();
+    this.wobble=rand(0,Math.PI*2);
+    this.wobSpd=rand(0.03,0.07);
+    this.done=false;
+    this.draining=false;
+  }
+  update(now){
+    if(now-this.born<this.delay)return;
+    if(this.active){
+      this.wobble+=this.wobSpd;
+      this.vy+=this.grav;
+      this.x+=Math.sin(this.wobble)*0.5;
+      this.y+=this.vy;
+      this.segs.push({x:this.x,y:this.y});
+      if(this.segs.length>200||this.y>CV.height+20){
+        this.active=false;
+      }
+    }
+    if(!this.active&&!this.draining){this.alpha-=0.006;if(this.alpha<=0)this.done=true;}
+    if(this.draining){this.alpha-=0.018;if(this.alpha<=0)this.done=true;}
+  }
+  draw(now){
+    if(now-this.born<this.delay||this.segs.length<2)return;
+    CX.save();CX.lineCap='round';CX.lineJoin='round';
+    for(let i=1;i<this.segs.length;i++){
+      const t=i/this.segs.length;
+      CX.globalAlpha=this.alpha*(0.4+t*0.6);
+      CX.strokeStyle=this.color;
+      CX.lineWidth=Math.max(1,this.w*(0.35+t*0.65));
+      CX.beginPath();
+      CX.moveTo(this.segs[i-1].x,this.segs[i-1].y);
+      CX.lineTo(this.segs[i].x,this.segs[i].y);
+      CX.stroke();
+    }
+    // bulging round tip
+    if(this.active){
+      const last=this.segs[this.segs.length-1];
+      CX.globalAlpha=this.alpha;
+      CX.fillStyle=this.color;
+      CX.beginPath();
+      CX.ellipse(last.x,last.y,this.w*0.7,this.w*1.0,0,0,Math.PI*2);
+      CX.fill();
+    }
+    CX.restore();
+  }
+}
+
+/* Splash state */
+let waves=[],drips=[],rafId=null;
+
+function spawnSplash(){
+  const W=CV.width,H=CV.height;
+  // Three wave layers filling from top — like coffee spreading across screen
+  waves.push(new LiquidWave(0,   '#1A0A06', H,      3.8, 0.97)); // dark base fills fast
+  waves.push(new LiquidWave(180, '#2A1510', H*0.85, 2.6, 0.82)); // mid layer
+  waves.push(new LiquidWave(380, '#3E2723', H*0.65, 1.8, 0.68)); // lighter top swell
+  waves.push(new LiquidWave(550, '#8D6E63', H*0.22, 1.0, 0.28)); // crema foam on top
+
+  // Drips spawned after wave hits bottom — run down naturally
+  for(let i=0;i<32;i++){
+    drips.push(new Drip(
+      rand(0, W),
+      rand(0, H*0.15),
+      i%5===0?'#6D4C41':'#1A0A06',
+      200+i*55+rand(0,80)
+    ));
+  }
+}
+
+function tick(now){
+  CX.clearRect(0,0,CV.width,CV.height);
+  waves.forEach(w=>{w.update(now);w.draw(now);});
+  drips.forEach(d=>{d.update(now);d.draw(now);});
+  drips=drips.filter(d=>!d.done);
+  rafId=requestAnimationFrame(tick);
+}
+
+function startSplash(){spawnSplash();rafId=requestAnimationFrame(tick);}
+
+function drainSplash(cb){
+  waves.forEach(w=>w.draining=true);
+  drips.forEach(d=>d.draining=true);
+  // fade the whole canvas out
+  let a=0;
+  const iv=setInterval(()=>{
+    CX.save();CX.globalAlpha=0.07;CX.fillStyle='#0D0604';CX.fillRect(0,0,CV.width,CV.height);CX.restore();
+    a+=0.07;
+    if(a>=1){clearInterval(iv);cancelAnimationFrame(rafId);CX.clearRect(0,0,CV.width,CV.height);cb&&cb();}
+  },16);
+}
+
+/* ════════════════════════════════════════════
+   INTRO SEQUENCE
+════════════════════════════════════════════ */
+gsap.registerPlugin(ScrollTrigger);
+const introEl=document.getElementById('intro');
+const mugWrap=document.getElementById('introMugWrap');
+const introMug=document.getElementById('introMugSvg');
+const introName=document.getElementById('introName');
+const introTag=document.getElementById('introTag');
+
+gsap.set(['#word1','#word2','#mugSvg','#steam','#scrollHint'],{opacity:0});
+gsap.set('#mugSvg',{scale:0});
+gsap.set(mugWrap,{y:-130,opacity:0,scale:0.55});
+gsap.set(introName,{opacity:0,y:18});
+gsap.set(introTag,{opacity:0,y:12});
+
+const introTL=gsap.timeline();
+// Drop mug in
+introTL.to(mugWrap,{y:0,opacity:1,scale:1,duration:0.85,ease:'bounce.out'},0.3)
+// Name appears
+.to(introName,{opacity:1,y:0,duration:0.5,ease:'expo.out'},1.1)
+.to(introTag,{opacity:1,y:0,duration:0.4,ease:'expo.out'},1.35)
+// HUMAN POUR: mug tilts slowly like a person pouring
+.to(introMug,{rotation:-12,duration:0.4,ease:'power1.inOut'},2.0)   // tilt to pour
+.to(introMug,{rotation:-35,y:15,duration:0.55,ease:'power2.in'},2.4) // pour position
+// START SPLASH as coffee pours out
+.call(()=>startSplash(),null,2.55)
+// Mug slowly settles back (realistic, not flung away)
+.to(introMug,{rotation:-20,y:5,duration:0.3,ease:'power1.out'},3.1)
+.to(introMug,{rotation:0,y:0,opacity:0,scale:0.7,duration:0.4,ease:'power2.in'},3.45)
+// Name fades
+.to([introName,introTag],{opacity:0,duration:0.55,ease:'power2.in'},3.2)
+// Drain and reveal
+.call(()=>{
+  drainSplash(()=>{
+    gsap.to(introEl,{y:'-100%',duration:0.85,ease:'expo.inOut',onComplete:()=>{
+      introEl.style.display='none';
+      const ht=gsap.timeline();
+      ht.to('#mugSvg',{scale:1,opacity:1,duration:1,ease:'back.out(1.5)'},0)
+        .to('#word1',{y:'0%',opacity:1,duration:0.7,ease:'expo.out'},0.2)
+        .to('#word2',{y:'0%',opacity:1,duration:0.7,ease:'expo.out'},0.32)
+        .to('#steam',{opacity:1,duration:0.5},0.6)
+        .to('#scrollHint',{opacity:1,duration:0.5},0.8);
+      gsap.to('#mugSvg',{y:-10,duration:3,repeat:-1,yoyo:true,ease:'sine.inOut',delay:1.2});
+    }});
+  });
+},null,4.0);
+
+gsap.set('#word1',{y:'110%'});gsap.set('#word2',{y:'110%'});
+
+/* ── HERO SCROLL parallax ── */
+ScrollTrigger.create({
+  trigger:'#hero',start:'top top',end:'bottom top',scrub:1.2,
+  onUpdate:self=>{
+    const p=self.progress;
+    gsap.set('#mug-scene',{y:p*180,rotation:p*20,opacity:1-Math.min(1,p*2.2),scale:1-p*.22});
+    gsap.set('#titleLeft',{y:p*70,opacity:1-p*1.5});
+    gsap.set('#titleRight',{y:p*95,opacity:1-p*1.5});
+    gsap.set('#steam',{opacity:1-Math.min(1,p*2.2)});
+    gsap.set('#scrollHint',{opacity:Math.max(0,1-p*6)});
+  }
+});
+
+/* ══════════════════════════════════════════════
+   COFFEE BEAN SPLIT
+   — scroll-driven AND tap/click to open
+══════════════════════════════════════════════ */
+
+/* Shared function: apply visual state for a 0→1 progress value */
+function applyBeanProgress(p){
+  // Phase 1 (0→0.15): zoom in
+  const zoomP = Math.min(1, p / 0.15);
+  const scale  = 0.3 + zoomP * 0.7;
+  document.querySelector('.bean-halves').style.transform = `scale(${scale})`;
+
+  // Phase 2 (0.15→0.75): split apart
+  const splitP  = Math.max(0, Math.min(1, (p - 0.15) / 0.6));
+  const splitPx = splitP * 340;
+
+  // Crack glow
+  const crackAlpha = Math.min(1, splitP * 2.5);
+  document.getElementById('beanCrack').style.opacity =
+    crackAlpha * (1 - Math.max(0, (splitP - 0.7) / 0.3));
+
+  // Reveal content
+  const revealP = Math.max(0, Math.min(1, (splitP - 0.3) / 0.5));
+  const reveal  = document.getElementById('beanReveal');
+  reveal.style.opacity   = revealP;
+  reveal.style.transform = `translate(-50%,-50%) scale(${0.85 + revealP * 0.15})`;
+  reveal.style.pointerEvents = revealP > 0.5 ? 'all' : 'none';
+
+  // Phase 3 (0.75→1): rotate + fade out
+  const exitP = Math.max(0, (p - 0.75) / 0.25);
+  document.getElementById('beanHalfLeft').style.transform  =
+    `translateX(-${splitPx + exitP * 120}px) rotate(${-exitP * 22}deg)`;
+  document.getElementById('beanHalfRight').style.transform =
+    `translateX(${splitPx + exitP * 120}px) rotate(${exitP * 22}deg)`;
+  document.getElementById('beanHalfLeft').style.opacity  = 1 - exitP * 0.8;
+  document.getElementById('beanHalfRight').style.opacity = 1 - exitP * 0.8;
+
+  // Floating bg beans
+  const fbOpacity = Math.min(1, splitP * 1.5);
+  ['fb1','fb2','fb3','fb4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.style.opacity   = fbOpacity * 0.35;
+    el.style.transform = `rotate(${p*360*(i%2?1:-1)*0.4}deg) translateY(${Math.sin(p*Math.PI+i)*18}px)`;
+  });
+}
+
+/* ── Scroll-driven ── */
+ScrollTrigger.create({
+  trigger: '#bean-split',
+  start:   'top top',
+  end:     'bottom bottom',
+  scrub:   1.5,
+  onUpdate(self){ applyBeanProgress(self.progress); }
+});
+
+/* ── Tap / Click to open (plays animated split) ── */
+let beanTapOpen = false;
+let beanTapTween = null;
+
+const beanHalves = document.querySelector('.bean-halves');
+const beanStickyEl = document.querySelector('.bean-split-sticky');
+
+/* Pulse hint on the bean */
+const tapHintBean = document.createElement('div');
+tapHintBean.id = 'beanTapHint';
+Object.assign(tapHintBean.style, {
+  position:'absolute', bottom:'28px', left:'50%',
+  transform:'translateX(-50%)',
+  fontFamily:"'DM Sans',sans-serif",
+  fontSize:'0.6rem', letterSpacing:'0.28em', textTransform:'uppercase',
+  color:'rgba(200,151,58,0.7)', whiteSpace:'nowrap',
+  pointerEvents:'none', zIndex:'10',
+  animation:'hintPulse 1.9s ease-in-out infinite'
+});
+tapHintBean.textContent = '✦ tap to crack open';
+beanStickyEl.appendChild(tapHintBean);
+
+/* Add keyframe for hint if not already present */
+const hintStyle = document.createElement('style');
+hintStyle.textContent = `
+  @keyframes hintPulse{0%,100%{opacity:0.35;transform:translateX(-50%) scale(0.97)}50%{opacity:1;transform:translateX(-50%) scale(1.03)}}
+  .bean-split-sticky{ cursor:pointer; }
+  #beanTapHint{ transition:opacity 0.4s; }
+`;
+document.head.appendChild(hintStyle);
+
+const tapObj = { p: 0 };
+
+function playBeanOpen(){
+  if(beanTapOpen) return;
+  beanTapOpen = true;
+  // hide hint
+  tapHintBean.style.opacity = '0';
+
+  // crack sound — tiny vibration on mobile
+  if(navigator.vibrate) navigator.vibrate([12, 30, 8]);
+
+  // animate p from 0 → 0.74 (fully split + revealed, but don't exit)
+  if(beanTapTween) beanTapTween.kill();
+  beanTapTween = gsap.to(tapObj, {
+    p: 0.74,
+    duration: 1.4,
+    ease: 'power2.inOut',
+    onUpdate(){ applyBeanProgress(tapObj.p); },
+    onComplete(){
+      // pulse open effect
+      gsap.to(tapObj, {
+        p: 0.78,
+        duration: 0.18,
+        ease: 'power1.out',
+        yoyo: true,
+        repeat: 1,
+        onUpdate(){ applyBeanProgress(tapObj.p); },
+        onComplete(){
+          tapObj.p = 0.74;
+          applyBeanProgress(0.74);
+        }
+      });
+    }
+  });
+}
+
+function playBeanClose(){
+  if(!beanTapOpen) return;
+  if(beanTapTween) beanTapTween.kill();
+  beanTapTween = gsap.to(tapObj, {
+    p: 0,
+    duration: 0.9,
+    ease: 'power2.inOut',
+    onUpdate(){ applyBeanProgress(tapObj.p); },
+    onComplete(){
+      beanTapOpen = false;
+      tapHintBean.style.opacity = '1';
+    }
+  });
+}
+
+beanStickyEl.addEventListener('click', ()=>{
+  beanTapOpen ? playBeanClose() : playBeanOpen();
+});
+beanStickyEl.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  beanTapOpen ? playBeanClose() : playBeanOpen();
+}, { passive:false });
+
+/* ── Fade-up sections ── */
+gsap.utils.toArray('.fade-up').forEach(el=>{
+  gsap.fromTo(el,{opacity:0,y:55},{opacity:1,y:0,duration:1.1,ease:'expo.out',
+    scrollTrigger:{trigger:el,start:'top 82%',toggleActions:'play none none reverse'}});
+});
+
+/* ── Product card tilt ── */
+document.querySelectorAll('.product-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const dx=(e.clientX-r.left-r.width/2)/(r.width/2),dy=(e.clientY-r.top-r.height/2)/(r.height/2);
+    gsap.to(card,{rotateY:dx*6,rotateX:-dy*4,duration:.4,ease:'power2.out',transformPerspective:800});
+  });
+  card.addEventListener('mouseleave',()=>gsap.to(card,{rotateY:0,rotateX:0,duration:.6,ease:'expo.out'}));
+});
+
+gsap.fromTo('.cta-glow-orb',{scale:.8,opacity:.5},{scale:1.3,opacity:1,
+  scrollTrigger:{trigger:'#cta',start:'top bottom',end:'center center',scrub:1.5}});
+</script>
+</body>
+</html>
