@@ -77,7 +77,7 @@ Inspired by modern high-end websites like Apple and Nike with focus on storytell
 **Aditya Hanashi**
 Building creative AI + Web experiences 🚀
 
----
+just a mixup of basic frontend tools!
 
 ## ⭐ Show Your Support
 
